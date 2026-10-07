@@ -4,7 +4,7 @@
 
 **Blocked by:** 05
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 오늘 화면에서 기록 화면으로 이동할 수 있다
 - [x] WorkoutLog가 세션 목록(최신 운동일 순)을 제공한다
