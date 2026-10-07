@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] WorkoutLog의 종목 목록이 종목별 가장 최근 세트 기록 시각 순으로 정렬되고, 세트가 없는 종목은 뒤에 온다
 - [x] 이름 검색(부분 일치, 대소문자/앞뒤 공백 무시)이 동작한다
