@@ -4,7 +4,7 @@ import type { Exercise, TrainingDay } from './workoutLog'
 import { TodayScreen } from './screens/TodayScreen'
 import { ExercisePickerScreen } from './screens/ExercisePickerScreen'
 import { RecordScreen } from './screens/RecordScreen'
-import { HistoryScreen } from './screens/HistoryScreen'
+import { SessionListScreen } from './screens/SessionListScreen'
 import { SessionScreen } from './screens/SessionScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 
@@ -13,7 +13,7 @@ export type Route =
   // trainingDay가 없으면 오늘 운동일, 있으면 그 운동일(세션 상세에서 들어온 경우)에 기록한다
   | { name: 'pickExercise'; trainingDay?: TrainingDay }
   | { name: 'record'; exercise: Exercise; trainingDay?: TrainingDay }
-  | { name: 'history' }
+  | { name: 'sessions' }
   | { name: 'session'; trainingDay: TrainingDay }
   | { name: 'settings' }
 
@@ -27,8 +27,8 @@ export function App() {
       return <ExercisePickerScreen trainingDay={route.trainingDay} navigate={setRoute} />
     case 'record':
       return <RecordScreen exercise={route.exercise} trainingDay={route.trainingDay} navigate={setRoute} />
-    case 'history':
-      return <HistoryScreen navigate={setRoute} />
+    case 'sessions':
+      return <SessionListScreen navigate={setRoute} />
     case 'session':
       return <SessionScreen trainingDay={route.trainingDay} navigate={setRoute} />
     case 'settings':

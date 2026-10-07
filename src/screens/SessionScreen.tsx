@@ -25,7 +25,7 @@ export function SessionScreen({
 
   return (
     <main>
-      <button className="back" onClick={() => navigate({ name: 'history' })}>
+      <button className="back" onClick={() => navigate({ name: 'sessions' })}>
         ‹ 기록
       </button>
       <h1>{formatTrainingDay(trainingDay)}</h1>

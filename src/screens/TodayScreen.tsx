@@ -26,7 +26,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
       <BackupBanner />
       {session === null && <p className="empty">오늘 기록한 세트가 없습니다.</p>}
       <SessionExerciseList session={session} navigate={navigate} onChange={reload} />
-      <button onClick={() => navigate({ name: 'history' })}>기록</button>
+      <button onClick={() => navigate({ name: 'sessions' })}>기록</button>
     </main>
   )
 }

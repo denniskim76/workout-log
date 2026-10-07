@@ -5,7 +5,7 @@ import { log } from '../log'
 import type { Session } from '../workoutLog'
 import { formatTrainingDay } from './format'
 
-export function HistoryScreen({ navigate }: { navigate: (route: Route) => void }) {
+export function SessionListScreen({ navigate }: { navigate: (route: Route) => void }) {
   const [sessions, setSessions] = useState<Session[] | undefined>(undefined)
   // 운동일은 새벽 4시에 바뀌므로 자정~4시에는 달력 날짜가 아직 미래 운동일이다
   const today = log.trainingDayOf(new Date())
@@ -37,7 +37,7 @@ export function HistoryScreen({ navigate }: { navigate: (route: Route) => void }
           onChange={(e) => setDay(e.target.value)}
         />
         <button type="submit" disabled={!canOpen}>
-          이 날짜에 기록
+          이 운동일에 세트 추가
         </button>
       </form>
       {sessions?.length === 0 && <p className="empty">기록한 세션이 없습니다.</p>}
