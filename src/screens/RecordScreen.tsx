@@ -1,5 +1,5 @@
 // 한 종목의 세트를 무게와 횟수로 기록하는 화면
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
 import {
@@ -31,7 +31,8 @@ export function RecordScreen({
   trainingDay?: TrainingDay
   navigate: (route: Route) => void
 }) {
-  const trainingDay = day ?? log.trainingDayOf(new Date())
+  // 화면을 연 순간의 운동일로 고정한다. 새벽 4시를 넘겨도 화면을 떠날 때까지 목록과 새 세트가 같은 운동일에 머문다.
+  const trainingDay = useMemo(() => day ?? log.trainingDayOf(new Date()), [day])
   const [sets, setSets] = useState<WorkoutSet[]>([])
   const [previous, setPrevious] = useState<PreviousRecord | null | undefined>(undefined)
   const [weight, setWeight] = useState('')
@@ -42,17 +43,26 @@ export function RecordScreen({
     setSets(session?.exercises.find((e) => e.exercise.id === exercise.id)?.sets ?? [])
   }
 
+  async function prefill() {
+    const values = await log.getPrefill(exercise.id, trainingDay)
+    setWeight(values ? String(values.weight) : '')
+    setReps(values ? String(values.reps) : '')
+  }
+
   useEffect(() => {
     reload()
   }, [exercise.id, trainingDay])
 
   useEffect(() => {
     log.getPreviousRecord(exercise.id, trainingDay).then(setPrevious)
-    log.getPrefill(exercise.id, trainingDay).then((values) => {
-      setWeight(values ? String(values.weight) : '')
-      setReps(values ? String(values.reps) : '')
-    })
+    prefill()
   }, [exercise.id, trainingDay])
+
+  // 세트를 고치거나 지우면 입력 칸도 고친 기록을 따른다(오타가 미리 채우기에 남지 않게)
+  async function onSetsChange() {
+    await reload()
+    await prefill()
+  }
 
   const weightValue = Number(weight)
   const repsValue = Number(reps)
@@ -128,7 +138,7 @@ export function RecordScreen({
           기록
         </button>
       </form>
-      <EditableSetList sets={sets} onChange={reload} />
+      <EditableSetList sets={sets} onChange={onSetsChange} />
     </main>
   )
 }
