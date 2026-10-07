@@ -32,7 +32,9 @@ export function ExercisePickerScreen({
 
   const exercises = result?.exercises
   const name = query.trim()
-  const canAdd = name !== '' && result?.query === query && exercises?.length === 0
+  // 부분 일치 결과가 있어도 이름이 정확히 같은 종목(대소문자 무시)이 없으면 추가할 수 있다('벤치프레스'가 있어도 '벤치')
+  const exactMatch = exercises?.some((e) => e.name.toLowerCase() === name.toLowerCase())
+  const canAdd = name !== '' && result?.query === query && !exactMatch
 
   async function add(e?: FormEvent) {
     e?.preventDefault()
