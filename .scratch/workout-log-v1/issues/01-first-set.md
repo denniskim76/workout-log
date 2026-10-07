@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 개발 서버로 앱을 열면 오늘 화면이 보이고, 기록이 없으면 빈 상태 안내와 "종목 추가" 버튼이 보인다
 - [x] 종목 이름을 입력해 종목을 추가하고 바로 그 종목의 기록 화면으로 들어간다
