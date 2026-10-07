@@ -93,3 +93,63 @@ describe('저장', () => {
     expect((await reopened.getSession('2026-10-07'))?.exercises[0].sets).toHaveLength(1)
   })
 })
+
+describe('지난 기록', () => {
+  it('바로 전 세션에 그 종목이 없으면 그보다 이전에 그 종목을 한 세션의 세트 전부를 돌려준다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 1, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 1, 18, 5) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 1, 18, 10) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 4, 18, 0) })
+
+    const record = await log.getPreviousRecord(bench.id, '2026-10-07')
+    expect(record?.trainingDay).toBe('2026-10-01')
+    expect(record?.sets.map((s) => `${s.weight}x${s.reps}`)).toEqual(['60x10', '60x8'])
+  })
+
+  it('기준 운동일 당일과 그 이후의 세션은 무시한다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 55, reps: 10, recordedAt: at(2026, 10, 3, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 5, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 65, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+
+    const record = await log.getPreviousRecord(bench.id, '2026-10-05')
+    expect(record?.trainingDay).toBe('2026-10-03')
+    expect(record?.sets.map((s) => s.weight)).toEqual([55])
+  })
+
+  it('기준 운동일 이전에 그 종목 기록이 없으면 빈 결과(null)를 돌려준다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 1, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+
+    expect(await log.getPreviousRecord(bench.id, '2026-10-07')).toBeNull()
+  })
+})
+
+describe('미리 채우기', () => {
+  it('그 운동일에 그 종목 세트가 있으면 가장 최근 세트 값을 돌려준다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 50, reps: 12, recordedAt: at(2026, 10, 4, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 62.5, reps: 8, recordedAt: at(2026, 10, 7, 18, 5) })
+
+    expect(await log.getPrefill(bench.id, '2026-10-07')).toEqual({ weight: 62.5, reps: 8 })
+  })
+
+  it('그 운동일에 세트가 없고 지난 기록만 있으면 지난 기록의 첫 세트 값을 돌려준다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 4, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 57.5, reps: 8, recordedAt: at(2026, 10, 4, 18, 5) })
+
+    expect(await log.getPrefill(bench.id, '2026-10-07')).toEqual({ weight: 60, reps: 10 })
+  })
+
+  it('그 운동일 세트도 지난 기록도 없으면 빈 값(null)을 돌려준다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+
+    expect(await log.getPrefill(bench.id, '2026-10-07')).toBeNull()
+  })
+})
