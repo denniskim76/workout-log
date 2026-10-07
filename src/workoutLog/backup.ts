@@ -1,6 +1,8 @@
 // 전체 데이터 JSON 내보내기/가져오기와 백업 배너 판단을 담당하는 WorkoutLog 동작
 import type { WorkoutDb } from './db'
+import { trainingDayOf } from './trainingDay'
 import type { BackupReminder, Exercise, WorkoutSet } from './types'
+import { assertValidSetValues } from './validation'
 
 const FORMAT_VERSION = 1
 const LAST_BACKUP_KEY = 'lastBackupAt'
@@ -18,7 +20,16 @@ const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v)
 const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
-/** 백업 JSON을 검증해 저장할 종목과 세트만 골라낸다. 형식이 틀리면 throw. */
+function assertUniqueIds(items: { id: number }[], label: string): void {
+  if (new Set(items.map((i) => i.id)).size !== items.length) {
+    throw new Error(`${label} id가 중복됩니다.`)
+  }
+}
+
+/**
+ * 백업 JSON을 검증해 저장할 종목과 세트만 골라낸다. 형식이 틀리거나 세트가 도메인 규칙
+ * (무게·횟수, 기록 시각과 운동일의 일치, 있는 종목 참조, id 중복 없음)을 어기면 throw.
+ */
 function parseBackup(json: string): Pick<BackupFile, 'exercises' | 'sets'> {
   const file: unknown = JSON.parse(json)
   if (!isObject(file)) throw new Error('백업 파일 형식이 아닙니다.')
@@ -48,8 +59,15 @@ function parseBackup(json: string): Pick<BackupFile, 'exercises' | 'sets'> {
       throw new Error('세트 항목이 올바르지 않습니다.')
     }
     const { id, exerciseId, weight, reps, recordedAt, trainingDay } = s
+    assertValidSetValues(weight, reps)
+    // 운동일은 기록 시각에서 계산되는 값이므로, 형식이 틀리거나 없는 날짜도 여기서 걸린다
+    if (trainingDay !== trainingDayOf(new Date(recordedAt))) {
+      throw new Error(`세트의 운동일이 기록 시각과 맞지 않습니다: ${trainingDay}`)
+    }
     return { id, exerciseId, weight, reps, recordedAt, trainingDay }
   })
+  assertUniqueIds(exercises, '종목')
+  assertUniqueIds(sets, '세트')
   return { exercises, sets }
 }
 

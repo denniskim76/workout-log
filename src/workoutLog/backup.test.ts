@@ -74,6 +74,14 @@ describe('잘못된 백업 파일', () => {
     ['세트 횟수가 문자열', withSet({ reps: '5' })],
     ['세트 운동일 누락', withSet({ trainingDay: undefined })],
     ['없는 종목을 가리키는 세트', withSet({ exerciseId: 99 })],
+    ['세트 무게가 음수', withSet({ weight: -5 })],
+    ['세트 횟수가 0', withSet({ reps: 0 })],
+    ['세트 횟수가 소수', withSet({ reps: 2.5 })],
+    ['운동일이 날짜 형식이 아님', withSet({ trainingDay: '10월 5일' })],
+    ['운동일이 없는 날짜', withSet({ trainingDay: '2026-02-30' })],
+    ['운동일이 기록 시각의 운동일과 다름', withSet({ trainingDay: '2026-10-04' })],
+    ['종목 id 중복', JSON.stringify({ ...valid, exercises: [...valid.exercises, { id: 1, name: '스쿼트' }] })],
+    ['세트 id 중복', JSON.stringify({ ...valid, sets: [valid.sets[0], valid.sets[0]] })],
   ])('%s이면 거부되고 기존 데이터는 그대로 남는다', async (_, json) => {
     await seed(log)
     const before = await log.getSession('2026-10-06')
