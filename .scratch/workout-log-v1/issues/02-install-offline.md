@@ -7,7 +7,7 @@
 **Status:** resolved
 
 - [x] 사용자가 GitHub 공개 저장소를 만들고 remote를 연결하는 절차가 안내된다(필요하면 `/wizard`)
-- [ ] main 브랜치에 push하면 GitHub Actions로 빌드되어 GitHub Pages에 배포된다
+- [x] main 브랜치에 push하면 GitHub Actions로 빌드되어 GitHub Pages에 배포된다
 - [x] Pages 하위 경로(base path)에서 앱과 모든 자산이 정상적으로 로드된다
 - [ ] 웹 앱 매니페스트(이름, 아이콘, 세로 화면, 독립 실행 모드)가 있어 iPhone 홈 화면에 추가하면 주소창 없이 실행된다
 - [ ] 서비스 워커가 앱 파일을 캐시해, 비행기 모드에서도 앱이 열리고 세트를 기록할 수 있다
@@ -23,3 +23,5 @@
 - 아이콘은 Node 스크립트로 만든 단색 덤벨 PNG(192, 512, maskable용으로 512 재사용, apple-touch-icon 180). 덤벨은 maskable 안전 영역(중앙 80%) 안에 들어감. iOS용으로 `index.html`에 `apple-touch-icon` 링크와 `apple-mobile-web-app-*` 메타를 추가.
 - 서비스 워커와 매니페스트는 스펙대로 단위 테스트하지 않음.
 - 배포 워크플로(`.github/workflows/deploy.yml`)는 `main` push 또는 수동 실행 시 `npm ci` → `npm test` → `npm run build` → `actions/deploy-pages` 순서로 동작. 사용자 설정 절차는 `README.md`에 정리함(현재 로컬 브랜치가 `master`라서 `main`으로 이름 바꾸는 단계 포함). 단계가 짧아서 `/wizard`는 쓰지 않음.
+
+- 2026-10-07: 첫 push 후 GitHub Actions 배포 성공. https://denniskim76.github.io/workout-log/ 에서 index, 매니페스트, sw.js, 아이콘이 200으로 응답함. 나머지 3개는 iPhone 확인 대기.
