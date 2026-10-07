@@ -9,6 +9,7 @@ import { trainingDayOf } from './trainingDay'
 
 export type * from './types'
 export { DuplicateExerciseNameError } from './exercises'
+export { parseTrainingDay } from './trainingDay'
 
 export function createWorkoutLog(dbName = 'workout-log') {
   const db = openWorkoutDb(dbName)

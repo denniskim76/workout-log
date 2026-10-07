@@ -12,9 +12,15 @@ export function trainingDayOf(time: Date): TrainingDay {
   return `${d.getFullYear()}-${mm}-${dd}`
 }
 
+/** 'YYYY-MM-DD' 운동일을 [연, 월(1~12), 일] 숫자로 나눈다. */
+export function parseTrainingDay(day: TrainingDay): [year: number, month: number, date: number] {
+  return [+day.slice(0, 4), +day.slice(5, 7), +day.slice(8, 10)]
+}
+
 /** 운동일이 시작되는 시각(그 날짜의 새벽 4시, 로컬 시간) */
 export function startOf(day: TrainingDay): Date {
-  return new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10), DAY_START_HOUR)
+  const [year, month, date] = parseTrainingDay(day)
+  return new Date(year, month - 1, date, DAY_START_HOUR)
 }
 
 /** 운동일이 끝나는 시각(다음 운동일 시작, 이 시각은 포함하지 않는다) */
