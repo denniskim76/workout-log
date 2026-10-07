@@ -10,28 +10,30 @@ export class DuplicateExerciseNameError extends Error {
 }
 
 export function exerciseOps(db: WorkoutDb) {
+  /**
+   * 앞뒤 공백을 뗀 이름으로 종목을 저장한다(id가 없으면 추가, 있으면 이름 변경).
+   * 다른 종목이 같은 이름이면 DuplicateExerciseNameError. 검사와 저장은 한 트랜잭션이다.
+   */
+  function saveName(name: string, id?: number): Promise<Exercise> {
+    const trimmed = name.trim()
+    return db.transaction('rw', db.exercises, async () => {
+      const same = await db.exercises.where('name').equals(trimmed).first()
+      if (same && same.id !== id) throw new DuplicateExerciseNameError(trimmed)
+      if (id === undefined) return { id: await db.exercises.add({ name: trimmed } as Exercise), name: trimmed }
+      await db.exercises.update(id, { name: trimmed })
+      return { id, name: trimmed }
+    })
+  }
+
   return {
     /** 같은 이름(앞뒤 공백 무시)의 종목이 이미 있으면 DuplicateExerciseNameError로 거부한다. */
     async addExercise(name: string): Promise<Exercise> {
-      const trimmed = name.trim()
-      return db.transaction('rw', db.exercises, async () => {
-        if ((await db.exercises.where('name').equals(trimmed).count()) > 0) {
-          throw new DuplicateExerciseNameError(trimmed)
-        }
-        const id = await db.exercises.add({ name: trimmed } as Exercise)
-        return { id, name: trimmed }
-      })
+      return saveName(name)
     },
 
     /** 세트는 종목 id로 참조하므로 과거 기록에도 새 이름이 보인다. 중복 이름은 거부한다. */
     async renameExercise(id: number, name: string): Promise<Exercise> {
-      const trimmed = name.trim()
-      return db.transaction('rw', db.exercises, async () => {
-        const same = await db.exercises.where('name').equals(trimmed).first()
-        if (same && same.id !== id) throw new DuplicateExerciseNameError(trimmed)
-        await db.exercises.update(id, { name: trimmed })
-        return { id, name: trimmed }
-      })
+      return saveName(name, id)
     },
 
     /** 종목과 그 종목의 모든 세트를 한 트랜잭션으로 지운다. 세트가 0개가 된 세션은 저절로 사라진다. */
