@@ -2,7 +2,6 @@
 import { useState, type FormEvent } from 'react'
 import { log } from '../log'
 import { DuplicateExerciseNameError, type Exercise } from '../workoutLog'
-import './ExerciseEditRow.css'
 
 type Mode = { name: 'idle' } | { name: 'rename' } | { name: 'confirmDelete'; setCount: number }
 

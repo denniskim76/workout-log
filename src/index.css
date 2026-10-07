@@ -153,3 +153,21 @@ form {
   flex: 1;
   min-width: 0;
 }
+
+/* 종목 선택 화면의 편집 모드(이름 변경, 삭제 확인) */
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  align-self: stretch;
+  justify-content: flex-end;
+}
+
+.danger {
+  color: #d33;
+}
