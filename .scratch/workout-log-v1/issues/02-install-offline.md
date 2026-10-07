@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 사용자가 GitHub 공개 저장소를 만들고 remote를 연결하는 절차가 안내된다(필요하면 `/wizard`)
 - [ ] main 브랜치에 push하면 GitHub Actions로 빌드되어 GitHub Pages에 배포된다

@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] 오늘 화면에서 설정 화면으로 이동할 수 있다
 - [x] WorkoutLog가 내보내기를 제공한다: 형식 버전, 내보낸 시각, 종목 목록, 세트 목록을 담은 JSON
