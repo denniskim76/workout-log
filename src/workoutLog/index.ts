@@ -8,7 +8,7 @@ import { setOps } from './sets'
 
 export type * from './types'
 export { DuplicateExerciseNameError } from './exercises'
-export { trainingDayOf } from './trainingDay'
+export { recordingTimeFor, trainingDayOf } from './trainingDay'
 
 export function createWorkoutLog(dbName = 'workout-log') {
   const db = openWorkoutDb(dbName)

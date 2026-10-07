@@ -1,6 +1,6 @@
 // WorkoutLog 공개 인터페이스로 세트 기록과 세션 조회 동작을 검증하는 테스트
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createWorkoutLog, DuplicateExerciseNameError, type WorkoutLog } from '.'
+import { createWorkoutLog, DuplicateExerciseNameError, recordingTimeFor, type WorkoutLog } from '.'
 
 let log: WorkoutLog
 
@@ -392,5 +392,54 @@ describe('세트 수정이 지난 기록과 미리 채우기에 반영됨', () =
     await log.updateSet(set.id, { weight: 57.5, reps: 12 })
 
     expect(await log.getPrefill(bench.id, '2026-10-07')).toEqual({ weight: 57.5, reps: 12 })
+  })
+})
+
+describe('과거 운동일 기록', () => {
+  it('세션이 없던 운동일에 기록하면 세션이 생기고 목록의 올바른 위치에 나타난다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 3, 19, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 62.5, reps: 8, recordedAt: at(2026, 10, 7, 19, 0) })
+
+    const now = at(2026, 10, 7, 20, 0)
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 9, recordedAt: recordingTimeFor('2026-10-05', now) })
+
+    expect((await log.listSessions()).map((s) => s.trainingDay)).toEqual(['2026-10-07', '2026-10-05', '2026-10-03'])
+    expect((await log.getSession('2026-10-05'))?.exercises[0].sets.map((s) => s.reps)).toEqual([9])
+  })
+
+  it('자정을 넘긴 새벽에 과거 운동일로 이어 기록한 세트도 그 운동일에 기록 순서대로 들어간다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    // 새벽 2시는 아직 10/6 운동일이다
+    for (const [reps, now] of [[10, at(2026, 10, 7, 2, 0)], [8, at(2026, 10, 7, 3, 59)]] as const) {
+      await log.recordSet({ exerciseId: bench.id, weight: 60, reps, recordedAt: recordingTimeFor('2026-10-04', now) })
+    }
+
+    expect((await log.listSessions()).map((s) => s.trainingDay)).toEqual(['2026-10-04'])
+    expect((await log.getSession('2026-10-04'))?.exercises[0].sets.map((s) => s.reps)).toEqual([10, 8])
+  })
+
+  it('이미 있는 과거 세션에 세트를 추가할 수 있다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 5, 7, 0) })
+
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: recordingTimeFor('2026-10-05', at(2026, 10, 7, 9, 0)) })
+
+    expect((await log.getSession('2026-10-05'))?.exercises[0].sets.map((s) => s.reps)).toEqual([10, 8])
+  })
+
+  it('과거 운동일 기준 지난 기록과 미리 채우기는 그 운동일 이후의 세션을 무시한다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 55, reps: 10, recordedAt: at(2026, 10, 2, 19, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 65, reps: 5, recordedAt: at(2026, 10, 6, 19, 0) })
+
+    expect(await log.getPreviousRecord(bench.id, '2026-10-04')).toMatchObject({ trainingDay: '2026-10-02' })
+    expect(await log.getPrefill(bench.id, '2026-10-04')).toEqual({ weight: 55, reps: 10 })
+  })
+
+  it('미래 운동일의 기록 시각은 만들 수 없다', () => {
+    expect(() => recordingTimeFor('2026-10-08', at(2026, 10, 7, 20, 0))).toThrow()
+    // 새벽 2시에는 달력 날짜(10/7)도 아직 미래 운동일이다
+    expect(() => recordingTimeFor('2026-10-07', at(2026, 10, 7, 2, 0))).toThrow()
   })
 })
