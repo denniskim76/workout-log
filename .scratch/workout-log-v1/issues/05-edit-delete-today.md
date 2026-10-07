@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] WorkoutLog가 세트 수정(무게, 횟수)과 삭제를 제공하며, 수정에도 같은 입력 검증이 적용된다
 - [x] 세트를 탭하면 수정/삭제 UI가 열리고, 저장하면 오늘 화면과 기록 화면에 즉시 반영된다
