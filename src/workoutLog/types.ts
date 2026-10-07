@@ -33,8 +33,25 @@ export interface SessionExercise {
   sets: WorkoutSet[]
 }
 
+/** 세트의 무게와 횟수(입력 칸 미리 채우기, 세트 수정에 쓴다) */
+export interface SetValues {
+  weight: number
+  reps: number
+}
+
+/** 종목의 지난 기록: 기준 운동일 이전에 그 종목을 한 가장 최근 운동일과 그날의 그 종목 세트(기록 시각 순). */
+export interface PreviousRecord {
+  trainingDay: TrainingDay
+  sets: WorkoutSet[]
+}
+
 /** 한 운동일의 세트 묶음. 종목은 그날 첫 세트 기록 순. */
 export interface Session {
   trainingDay: TrainingDay
   exercises: SessionExercise[]
+}
+
+/** 오늘 화면 백업 배너에 필요한 정보. daysSinceBackup이 null이면 백업한 적이 없다. */
+export interface BackupReminder {
+  daysSinceBackup: number | null
 }

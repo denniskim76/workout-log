@@ -1,6 +1,8 @@
 // 운동 기록 도메인 규칙을 담는 단일 모듈 WorkoutLog의 공개 진입점
+import { backupOps } from './backup'
 import { openWorkoutDb } from './db'
 import { exerciseOps } from './exercises'
+import { previousRecordOps } from './previousRecord'
 import { sessionOps } from './sessions'
 import { setOps } from './sets'
 
@@ -14,6 +16,8 @@ export function createWorkoutLog(dbName = 'workout-log') {
     ...exerciseOps(db),
     ...setOps(db),
     ...sessionOps(db),
+    ...previousRecordOps(db),
+    ...backupOps(db),
   }
 }
 
