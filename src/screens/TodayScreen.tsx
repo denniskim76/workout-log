@@ -26,7 +26,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
           <span>{sets.map(formatSet).join(' · ')}</span>
         </button>
       ))}
-      <button className="primary" onClick={() => navigate({ name: 'addExercise' })}>
+      <button className="primary" onClick={() => navigate({ name: 'pickExercise' })}>
         종목 추가
       </button>
     </main>
