@@ -9,3 +9,9 @@ export function formatDaysAgo(day: TrainingDay, base: TrainingDay): string {
   const days = Math.round((toUtc(base) - toUtc(day)) / 86_400_000)
   return `${days}일 전 (${+day.slice(5, 7)}/${+day.slice(8, 10)})`
 }
+
+/** 운동일을 "10월 5일 (월)" 형태로 표시한다. */
+export function formatTrainingDay(day: TrainingDay): string {
+  const date = new Date(+day.slice(0, 4), +day.slice(5, 7) - 1, +day.slice(8, 10))
+  return `${date.getMonth() + 1}월 ${date.getDate()}일 (${'일월화수목금토'[date.getDay()]})`
+}

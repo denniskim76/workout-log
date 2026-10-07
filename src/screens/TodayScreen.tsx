@@ -31,6 +31,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
       <button className="primary" onClick={() => navigate({ name: 'pickExercise' })}>
         종목 추가
       </button>
+      <button onClick={() => navigate({ name: 'history' })}>기록</button>
     </main>
   )
 }
