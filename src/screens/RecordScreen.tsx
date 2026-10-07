@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
 import { trainingDayOf, type Exercise, type PreviousRecord, type WorkoutSet } from '../workoutLog'
+import { EditableSetList } from './EditableSetList'
 import { formatDaysAgo, formatSet } from './format'
 
 const WEIGHT_STEP = 2.5
@@ -116,11 +117,7 @@ export function RecordScreen({
           기록
         </button>
       </form>
-      <ol className="sets">
-        {sets.map((set) => (
-          <li key={set.id}>{formatSet(set)}</li>
-        ))}
-      </ol>
+      <EditableSetList sets={sets} onChange={reload} />
     </main>
   )
 }

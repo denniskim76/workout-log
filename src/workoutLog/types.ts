@@ -33,7 +33,7 @@ export interface SessionExercise {
   sets: WorkoutSet[]
 }
 
-/** 세트 입력 칸에 채울 무게와 횟수 */
+/** 세트의 무게와 횟수(입력 칸 미리 채우기, 세트 수정에 쓴다) */
 export interface SetValues {
   weight: number
   reps: number

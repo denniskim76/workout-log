@@ -1,7 +1,7 @@
 // 세트 기록 등 세트 관련 WorkoutLog 동작
 import type { WorkoutDb } from './db'
 import { trainingDayOf } from './trainingDay'
-import type { NewSet, WorkoutSet } from './types'
+import type { NewSet, SetValues, WorkoutSet } from './types'
 import { assertValidSetValues } from './validation'
 
 export function setOps(db: WorkoutDb) {
@@ -17,6 +17,15 @@ export function setOps(db: WorkoutDb) {
       }
       const id = await db.sets.add(set as WorkoutSet)
       return { ...set, id }
+    },
+
+    async updateSet(id: number, { weight, reps }: SetValues): Promise<void> {
+      assertValidSetValues(weight, reps)
+      await db.sets.update(id, { weight, reps })
+    },
+
+    async deleteSet(id: number): Promise<void> {
+      await db.sets.delete(id)
     },
   }
 }
