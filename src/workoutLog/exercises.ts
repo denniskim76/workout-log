@@ -23,6 +23,30 @@ export function exerciseOps(db: WorkoutDb) {
       })
     },
 
+    /** 세트는 종목 id로 참조하므로 과거 기록에도 새 이름이 보인다. 중복 이름은 거부한다. */
+    async renameExercise(id: number, name: string): Promise<Exercise> {
+      const trimmed = name.trim()
+      return db.transaction('rw', db.exercises, async () => {
+        const same = await db.exercises.where('name').equals(trimmed).first()
+        if (same && same.id !== id) throw new DuplicateExerciseNameError(trimmed)
+        await db.exercises.update(id, { name: trimmed })
+        return { id, name: trimmed }
+      })
+    },
+
+    /** 종목과 그 종목의 모든 세트를 한 트랜잭션으로 지운다. 세트가 0개가 된 세션은 저절로 사라진다. */
+    async deleteExercise(id: number): Promise<void> {
+      await db.transaction('rw', db.exercises, db.sets, async () => {
+        await db.sets.where('exerciseId').equals(id).delete()
+        await db.exercises.delete(id)
+      })
+    },
+
+    /** 모든 운동일에 걸친 그 종목의 세트 개수(삭제 확인 창용). */
+    async countSets(exerciseId: number): Promise<number> {
+      return db.sets.where('exerciseId').equals(exerciseId).count()
+    },
+
     /**
      * 최근 사용 순(종목별 가장 최근 세트의 기록 시각). 세트가 없는 종목은 뒤에 온다.
      * query가 있으면 이름 부분 일치(대소문자, 앞뒤 공백 무시)로 거른다.

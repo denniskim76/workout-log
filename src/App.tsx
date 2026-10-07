@@ -6,6 +6,7 @@ import { ExercisePickerScreen } from './screens/ExercisePickerScreen'
 import { RecordScreen } from './screens/RecordScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
 import { SessionScreen } from './screens/SessionScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 
 export type Route =
   | { name: 'today' }
@@ -13,6 +14,7 @@ export type Route =
   | { name: 'record'; exercise: Exercise }
   | { name: 'history' }
   | { name: 'session'; trainingDay: TrainingDay }
+  | { name: 'settings' }
 
 export function App() {
   const [route, setRoute] = useState<Route>({ name: 'today' })
@@ -28,5 +30,7 @@ export function App() {
       return <HistoryScreen navigate={setRoute} />
     case 'session':
       return <SessionScreen trainingDay={route.trainingDay} navigate={setRoute} />
+    case 'settings':
+      return <SettingsScreen navigate={setRoute} />
   }
 }

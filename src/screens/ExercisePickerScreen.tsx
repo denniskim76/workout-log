@@ -3,11 +3,16 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
 import type { Exercise } from '../workoutLog'
+import { ExerciseEditRow } from './ExerciseEditRow'
 
 export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) => void }) {
   const [query, setQuery] = useState('')
   // 어떤 검색어의 결과인지 함께 들고 있어, 결과가 도착하기 전의 이전 결과로 추가 버튼을 띄우지 않는다
   const [result, setResult] = useState<{ query: string; exercises: Exercise[] } | undefined>()
+  // 편집 모드에서만 이름 변경/삭제 버튼을 보여 실수로 누르기 어렵게 한다
+  const [editing, setEditing] = useState(false)
+  // 이름 변경/삭제 후 목록을 다시 불러오기 위한 값
+  const [version, setVersion] = useState(0)
 
   useEffect(() => {
     let current = true
@@ -15,7 +20,7 @@ export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) =>
     return () => {
       current = false
     }
-  }, [query])
+  }, [query, version])
 
   const exercises = result?.exercises
   const name = query.trim()
@@ -33,7 +38,10 @@ export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) =>
       <button className="back" onClick={() => navigate({ name: 'today' })}>
         ‹ 오늘
       </button>
-      <h1>종목 선택</h1>
+      <div className="title-row">
+        <h1>종목 선택</h1>
+        <button onClick={() => setEditing(!editing)}>{editing ? '완료' : '편집'}</button>
+      </div>
       <form onSubmit={add}>
         <input
           autoFocus
@@ -43,15 +51,23 @@ export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) =>
           onChange={(e) => setQuery(e.target.value)}
         />
       </form>
-      {exercises?.map((exercise) => (
-        <button
-          key={exercise.id}
-          className="card"
-          onClick={() => navigate({ name: 'record', exercise })}
-        >
-          <strong>{exercise.name}</strong>
-        </button>
-      ))}
+      {exercises?.map((exercise) =>
+        editing ? (
+          <ExerciseEditRow
+            key={exercise.id}
+            exercise={exercise}
+            onChange={() => setVersion((v) => v + 1)}
+          />
+        ) : (
+          <button
+            key={exercise.id}
+            className="card"
+            onClick={() => navigate({ name: 'record', exercise })}
+          >
+            <strong>{exercise.name}</strong>
+          </button>
+        ),
+      )}
       {exercises?.length === 0 && name === '' && (
         <p className="empty">검색 칸에 종목 이름을 입력해 새 종목을 추가하세요.</p>
       )}

@@ -205,6 +205,52 @@ describe('종목 목록', () => {
   })
 })
 
+describe('종목 이름 변경과 삭제', () => {
+  it('이름을 바꾸면 과거 세션 조회에도 새 이름이 나온다', async () => {
+    const bench = await log.addExercise('벤치')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 1, 18, 0) })
+
+    await log.renameExercise(bench.id, ' 벤치프레스 ')
+
+    expect((await log.getSession('2026-10-01'))?.exercises[0].exercise.name).toBe('벤치프레스')
+  })
+
+  it('다른 종목과 같은 이름으로는 바꿀 수 없지만 자기 이름 그대로는 괜찮다', async () => {
+    await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+
+    await expect(log.renameExercise(squat.id, ' 벤치프레스')).rejects.toBeInstanceOf(DuplicateExerciseNameError)
+    await log.renameExercise(squat.id, '스쿼트 ')
+    expect((await log.listExercises()).map((e) => e.name)).toEqual(['벤치프레스', '스쿼트'])
+  })
+
+  it('종목의 세트 개수는 모든 세션에 걸친 그 종목의 세트 수다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 1, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 7, 18, 0) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 7, 18, 10) })
+
+    expect(await log.countSets(bench.id)).toBe(2)
+    expect(await log.countSets((await log.addExercise('데드리프트')).id)).toBe(0)
+  })
+
+  it('종목을 삭제하면 모든 세션에서 그 종목의 세트가 사라지고 세트가 0개가 된 세션도 사라진다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 1, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 7, 18, 0) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 7, 18, 10) })
+
+    await log.deleteExercise(bench.id)
+
+    expect(await log.getSession('2026-10-01')).toBeNull()
+    expect((await log.getSession('2026-10-07'))?.exercises.map((e) => e.exercise.name)).toEqual(['스쿼트'])
+    expect((await log.listExercises()).map((e) => e.name)).toEqual(['스쿼트'])
+    expect(await log.countSets(bench.id)).toBe(0)
+  })
+})
+
 describe('지난 기록', () => {
   it('바로 전 세션에 그 종목이 없으면 그보다 이전에 그 종목을 한 세션의 세트 전부를 돌려준다', async () => {
     const bench = await log.addExercise('벤치프레스')
