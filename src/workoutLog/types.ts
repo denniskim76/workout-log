@@ -20,6 +20,12 @@ export interface WorkoutSet {
   trainingDay: TrainingDay
 }
 
+/** 세트 수정 시 바꿀 수 있는 값 */
+export interface SetValues {
+  weight: number
+  reps: number
+}
+
 export interface NewSet {
   exerciseId: number
   weight: number

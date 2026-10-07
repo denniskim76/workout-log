@@ -93,3 +93,74 @@ describe('저장', () => {
     expect((await reopened.getSession('2026-10-07'))?.exercises[0].sets).toHaveLength(1)
   })
 })
+
+describe('세트 수정과 삭제', () => {
+  it('세트의 무게와 횟수를 고치면 세션 조회에 고친 값이 나온다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const set = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+
+    await log.updateSet(set.id, { weight: 62.5, reps: 8 })
+
+    const session = await log.getSession('2026-10-07')
+    expect(session?.exercises[0].sets.map((s) => `${s.weight}x${s.reps}`)).toEqual(['62.5x8'])
+  })
+
+  it('세트를 삭제하면 세션 조회에서 그 세트만 빠진다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+    const second = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 7, 18, 5) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 6, recordedAt: at(2026, 10, 7, 18, 10) })
+
+    await log.deleteSet(second.id)
+
+    const session = await log.getSession('2026-10-07')
+    expect(session?.exercises[0].sets.map((s) => s.reps)).toEqual([10, 6])
+  })
+
+  it('한 종목의 세트를 모두 지우면 그 종목 묶음이 세션에서 빠진다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    const benchSet = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 7, 18, 10) })
+
+    await log.deleteSet(benchSet.id)
+
+    const session = await log.getSession('2026-10-07')
+    expect(session?.exercises.map((e) => e.exercise.name)).toEqual(['스쿼트'])
+  })
+
+  it('세션의 마지막 세트를 지우면 그 세션은 조회되지 않는다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const first = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+    const second = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 7, 18, 5) })
+
+    await log.deleteSet(first.id)
+    await log.deleteSet(second.id)
+
+    expect(await log.getSession('2026-10-07')).toBeNull()
+  })
+
+  it.each([
+    ['음수 무게', { weight: -1, reps: 8 }],
+    ['숫자가 아닌 무게', { weight: NaN, reps: 8 }],
+    ['0회', { weight: 60, reps: 0 }],
+    ['소수 횟수', { weight: 60, reps: 7.5 }],
+  ])('%s로는 수정할 수 없고 기존 값이 유지된다', async (_, values) => {
+    const bench = await log.addExercise('벤치프레스')
+    const set = await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+
+    await expect(log.updateSet(set.id, values)).rejects.toThrow()
+
+    const session = await log.getSession('2026-10-07')
+    expect(session?.exercises[0].sets.map((s) => `${s.weight}x${s.reps}`)).toEqual(['60x10'])
+  })
+
+  it('세트 기록에도 같은 검증이 적용된다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+
+    await expect(
+      log.recordSet({ exerciseId: bench.id, weight: 60, reps: 0, recordedAt: at(2026, 10, 7, 18, 0) }),
+    ).rejects.toThrow()
+    expect(await log.getSession('2026-10-07')).toBeNull()
+  })
+})
