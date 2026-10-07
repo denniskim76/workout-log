@@ -144,3 +144,12 @@ form {
   background: #fff3cd;
   color: #664d03;
 }
+
+.date-pick {
+  flex-direction: row;
+}
+
+.date-pick input {
+  flex: 1;
+  min-width: 0;
+}

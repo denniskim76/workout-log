@@ -2,9 +2,16 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
-import { trainingDayOf, type Exercise, type PreviousRecord, type WorkoutSet } from '../workoutLog'
+import {
+  recordingTimeFor,
+  trainingDayOf,
+  type Exercise,
+  type PreviousRecord,
+  type TrainingDay,
+  type WorkoutSet,
+} from '../workoutLog'
 import { EditableSetList } from './EditableSetList'
-import { formatDaysAgo, formatSet } from './format'
+import { formatDaysAgo, formatSet, formatTrainingDay } from './format'
 
 const WEIGHT_STEP = 2.5
 const REPS_STEP = 1
@@ -17,12 +24,15 @@ function step(value: string, delta: number, min: number): string {
 
 export function RecordScreen({
   exercise,
+  trainingDay: day,
   navigate,
 }: {
   exercise: Exercise
+  /** 없으면 오늘 운동일 */
+  trainingDay?: TrainingDay
   navigate: (route: Route) => void
 }) {
-  const trainingDay = trainingDayOf(new Date())
+  const trainingDay = day ?? trainingDayOf(new Date())
   const [sets, setSets] = useState<WorkoutSet[]>([])
   const [previous, setPrevious] = useState<PreviousRecord | null | undefined>(undefined)
   const [weight, setWeight] = useState('')
@@ -62,7 +72,7 @@ export function RecordScreen({
       exerciseId: exercise.id,
       weight: weightValue,
       reps: repsValue,
-      recordedAt: new Date(),
+      recordedAt: recordingTimeFor(trainingDay),
     })
     // 다음 세트 입력 칸은 방금 기록한 값(미리 채우기 규칙의 당일 최근 세트)
     setWeight(String(weightValue))
@@ -72,10 +82,17 @@ export function RecordScreen({
 
   return (
     <main>
-      <button className="back" onClick={() => navigate({ name: 'today' })}>
-        ‹ 오늘
-      </button>
+      {day ? (
+        <button className="back" onClick={() => navigate({ name: 'session', trainingDay: day })}>
+          ‹ {formatTrainingDay(day)}
+        </button>
+      ) : (
+        <button className="back" onClick={() => navigate({ name: 'today' })}>
+          ‹ 오늘
+        </button>
+      )}
       <h1>{exercise.name}</h1>
+      {day && <div className="empty">{formatTrainingDay(day)}에 기록</div>}
       {previous !== undefined && (
         <section className="previous">
           {previous ? (

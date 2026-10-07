@@ -32,10 +32,15 @@ export function SessionScreen({
       {session === null && <p className="empty">이 운동일에 기록한 세트가 없습니다.</p>}
       {session?.exercises.map(({ exercise, sets }) => (
         <section key={exercise.id} className="card">
-          <strong>{exercise.name}</strong>
+          <button className="exercise" onClick={() => navigate({ name: 'record', exercise, trainingDay })}>
+            <strong>{exercise.name}</strong> ›
+          </button>
           <EditableSetList sets={sets} onChange={reload} />
         </section>
       ))}
+      <button className="primary" onClick={() => navigate({ name: 'pickExercise', trainingDay })}>
+        종목 추가
+      </button>
     </main>
   )
 }

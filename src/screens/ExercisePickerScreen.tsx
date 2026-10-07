@@ -2,10 +2,18 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
-import type { Exercise } from '../workoutLog'
+import type { Exercise, TrainingDay } from '../workoutLog'
 import { ExerciseEditRow } from './ExerciseEditRow'
+import { formatTrainingDay } from './format'
 
-export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) => void }) {
+export function ExercisePickerScreen({
+  trainingDay,
+  navigate,
+}: {
+  /** 없으면 오늘 운동일 */
+  trainingDay?: TrainingDay
+  navigate: (route: Route) => void
+}) {
   const [query, setQuery] = useState('')
   // 어떤 검색어의 결과인지 함께 들고 있어, 결과가 도착하기 전의 이전 결과로 추가 버튼을 띄우지 않는다
   const [result, setResult] = useState<{ query: string; exercises: Exercise[] } | undefined>()
@@ -30,14 +38,20 @@ export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) =>
     e?.preventDefault()
     if (!canAdd) return
     const exercise = await log.addExercise(name)
-    navigate({ name: 'record', exercise })
+    navigate({ name: 'record', exercise, trainingDay })
   }
 
   return (
     <main>
-      <button className="back" onClick={() => navigate({ name: 'today' })}>
-        ‹ 오늘
-      </button>
+      {trainingDay ? (
+        <button className="back" onClick={() => navigate({ name: 'session', trainingDay })}>
+          ‹ {formatTrainingDay(trainingDay)}
+        </button>
+      ) : (
+        <button className="back" onClick={() => navigate({ name: 'today' })}>
+          ‹ 오늘
+        </button>
+      )}
       <div className="title-row">
         <h1>종목 선택</h1>
         <button onClick={() => setEditing(!editing)}>{editing ? '완료' : '편집'}</button>
@@ -62,7 +76,7 @@ export function ExercisePickerScreen({ navigate }: { navigate: (route: Route) =>
           <button
             key={exercise.id}
             className="card"
-            onClick={() => navigate({ name: 'record', exercise })}
+            onClick={() => navigate({ name: 'record', exercise, trainingDay })}
           >
             <strong>{exercise.name}</strong>
           </button>
