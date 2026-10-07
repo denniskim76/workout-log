@@ -4,7 +4,7 @@ import type { Route } from '../App'
 import { log } from '../log'
 import type { Session } from '../workoutLog'
 import { BackupBanner } from './BackupBanner'
-import { EditableSetList } from './EditableSetList'
+import { SessionExerciseList } from './SessionExerciseList'
 
 export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -25,17 +25,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
       <h1>오늘</h1>
       <BackupBanner />
       {session === null && <p className="empty">오늘 기록한 세트가 없습니다.</p>}
-      {session?.exercises.map(({ exercise, sets }) => (
-        <section key={exercise.id} className="card">
-          <button className="exercise" onClick={() => navigate({ name: 'record', exercise })}>
-            <strong>{exercise.name}</strong> ›
-          </button>
-          <EditableSetList sets={sets} onChange={reload} />
-        </section>
-      ))}
-      <button className="primary" onClick={() => navigate({ name: 'pickExercise' })}>
-        종목 추가
-      </button>
+      <SessionExerciseList session={session} navigate={navigate} onChange={reload} />
       <button onClick={() => navigate({ name: 'history' })}>기록</button>
     </main>
   )
