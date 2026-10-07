@@ -21,7 +21,7 @@
 - **공개 메서드(`src/workoutLog/backup.ts`)**: `exportBackup(now): Promise<string>`, `importBackup(json): Promise<void>`(형식이 틀리면 reject), `markBackedUp(now): Promise<void>`, `getBackupReminder(now): Promise<BackupReminder | null>`. `BackupReminder`는 `{ daysSinceBackup: number | null }`이며 null이면 백업한 적이 없다는 뜻이다. 모두 시각을 인자로 받아 테스트에서 고정할 수 있다.
 - **내보내기와 백업 시각 기록을 분리**: `exportBackup`은 JSON만 만든다. 공유 시트에서 취소(AbortError)하면 백업한 것이 아니므로, 화면 도우미 `src/backupFile.ts`의 `shareBackup()`이 공유나 다운로드를 마친 뒤에만 `markBackedUp`을 부른다. 다운로드 대체 경로는 완료를 알 수 없어 클릭 직후 성공으로 본다.
 - **백업 형식 v1**: `{ version: 1, exportedAt: ISO 문자열, exercises: [{id, name}], sets: [{id, exerciseId, weight, reps, recordedAt, trainingDay}] }`. id를 그대로 보존해 세트-종목 참조와 세션 순서가 왕복 후에도 같다. 가져온 뒤 새로 추가하는 종목과 세트의 자동 증가 id가 충돌하지 않는 것도 테스트로 확인했다.
-- **검증**: JSON 파싱, 객체 여부, `version === 1`, 목록 존재, 각 항목의 필드 타입, 세트의 `exerciseId`가 파일 안의 종목을 가리키는지까지 본다. 통과한 필드만 골라 저장한다(알 수 없는 필드는 버린다). 뒤 티켓이 `Exercise`/`WorkoutSet`에 필드를 추가하면 `parseBackup`도 함께 고치고, 호환되지 않는 변경이면 `FORMAT_VERSION`을 올린다. 무게/횟수의 값 범위 검증(03 티켓)은 가져오기에서 하지 않는다.
+- **검증**: JSON 파싱, 객체 여부, `version === 1`, 목록 존재, 각 항목의 필드 타입, 세트의 `exerciseId`가 파일 안의 종목을 가리키는지까지 본다. 통과한 필드만 골라 저장한다(알 수 없는 필드는 버린다). 뒤 티켓이 `Exercise`/`WorkoutSet`에 필드를 추가하면 `parseBackup`도 함께 고치고, 호환되지 않는 변경이면 `FORMAT_VERSION`을 올린다. 무게/횟수의 값 범위 검증(03 티켓)과 종목 이름 중복 검사(04 티켓 규칙)는 가져오기에서 하지 않는다. 앱이 내보낸 파일은 이미 이 규칙을 지키기 때문이다.
 - **트랜잭션**: 검증을 먼저 끝낸 뒤 `exercises`/`sets`를 한 트랜잭션에서 비우고 다시 채운다. `meta`(마지막 백업 시각)는 가져오기로 바꾸지 않는다.
 - **배너 기준**: "7일을 넘었다"는 경과 시간이 정확히 7×24시간보다 클 때다. N은 경과 시간을 일 단위로 내림한 값이라 7일 1분 전 백업은 "마지막 백업 7일 전"으로 보인다. 세트가 0개면 백업 이력과 무관하게 배너가 없다.
 - **화면 충돌 최소화**: 배너는 별도 컴포넌트 `src/screens/BackupBanner.tsx`가 스스로 조회한다. `TodayScreen`에는 설정 링크 버튼과 `<BackupBanner />`만, `App.tsx`에는 `settings` 라우트만 더했다.

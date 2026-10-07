@@ -2,10 +2,12 @@
 import type { WorkoutDb } from './db'
 import { trainingDayOf } from './trainingDay'
 import type { NewSet, WorkoutSet } from './types'
+import { assertValidSetValues } from './validation'
 
 export function setOps(db: WorkoutDb) {
   return {
     async recordSet({ exerciseId, weight, reps, recordedAt }: NewSet): Promise<WorkoutSet> {
+      assertValidSetValues(weight, reps)
       const set = {
         exerciseId,
         weight,

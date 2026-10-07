@@ -2,13 +2,13 @@
 import { useState } from 'react'
 import type { Exercise } from './workoutLog'
 import { TodayScreen } from './screens/TodayScreen'
-import { AddExerciseScreen } from './screens/AddExerciseScreen'
+import { ExercisePickerScreen } from './screens/ExercisePickerScreen'
 import { RecordScreen } from './screens/RecordScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 
 export type Route =
   | { name: 'today' }
-  | { name: 'addExercise' }
+  | { name: 'pickExercise' }
   | { name: 'record'; exercise: Exercise }
   | { name: 'settings' }
 
@@ -18,8 +18,8 @@ export function App() {
   switch (route.name) {
     case 'today':
       return <TodayScreen navigate={setRoute} />
-    case 'addExercise':
-      return <AddExerciseScreen navigate={setRoute} />
+    case 'pickExercise':
+      return <ExercisePickerScreen navigate={setRoute} />
     case 'record':
       return <RecordScreen exercise={route.exercise} navigate={setRoute} />
     case 'settings':

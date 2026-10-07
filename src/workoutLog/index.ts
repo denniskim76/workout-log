@@ -2,10 +2,12 @@
 import { backupOps } from './backup'
 import { openWorkoutDb } from './db'
 import { exerciseOps } from './exercises'
+import { previousRecordOps } from './previousRecord'
 import { sessionOps } from './sessions'
 import { setOps } from './sets'
 
 export type * from './types'
+export { DuplicateExerciseNameError } from './exercises'
 export { trainingDayOf } from './trainingDay'
 
 export function createWorkoutLog(dbName = 'workout-log') {
@@ -14,6 +16,7 @@ export function createWorkoutLog(dbName = 'workout-log') {
     ...exerciseOps(db),
     ...setOps(db),
     ...sessionOps(db),
+    ...previousRecordOps(db),
     ...backupOps(db),
   }
 }
