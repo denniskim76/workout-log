@@ -4,11 +4,13 @@ import type { Exercise } from './workoutLog'
 import { TodayScreen } from './screens/TodayScreen'
 import { AddExerciseScreen } from './screens/AddExerciseScreen'
 import { RecordScreen } from './screens/RecordScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 
 export type Route =
   | { name: 'today' }
   | { name: 'addExercise' }
   | { name: 'record'; exercise: Exercise }
+  | { name: 'settings' }
 
 export function App() {
   const [route, setRoute] = useState<Route>({ name: 'today' })
@@ -20,5 +22,7 @@ export function App() {
       return <AddExerciseScreen navigate={setRoute} />
     case 'record':
       return <RecordScreen exercise={route.exercise} navigate={setRoute} />
+    case 'settings':
+      return <SettingsScreen navigate={setRoute} />
   }
 }

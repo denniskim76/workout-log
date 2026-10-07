@@ -63,3 +63,21 @@ form {
 .sets {
   font-size: 18px;
 }
+
+.settings-link {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #fff3cd;
+  color: #664d03;
+}

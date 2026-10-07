@@ -4,6 +4,7 @@ import type { Route } from '../App'
 import { log } from '../log'
 import { trainingDayOf, type Session } from '../workoutLog'
 import { formatSet } from './format'
+import { BackupBanner } from './BackupBanner'
 
 export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined)
@@ -14,7 +15,11 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
 
   return (
     <main>
+      <button className="settings-link" onClick={() => navigate({ name: 'settings' })}>
+        설정
+      </button>
       <h1>오늘</h1>
+      <BackupBanner />
       {session === null && <p className="empty">오늘 기록한 세트가 없습니다.</p>}
       {session?.exercises.map(({ exercise, sets }) => (
         <button
