@@ -62,4 +62,24 @@ form {
 
 .sets {
   font-size: 18px;
+  align-self: stretch;
+  margin: 0;
+}
+
+.sets li + li {
+  margin-top: 4px;
+}
+
+.set,
+.exercise {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+}
+
+.error {
+  color: crimson;
+  margin: 0;
 }
