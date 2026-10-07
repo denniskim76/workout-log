@@ -3,6 +3,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
 import {
+  isValidSetValues,
   type Exercise,
   type PreviousRecord,
   type TrainingDay,
@@ -55,13 +56,8 @@ export function RecordScreen({
 
   const weightValue = Number(weight)
   const repsValue = Number(reps)
-  const canRecord =
-    weight !== '' &&
-    reps !== '' &&
-    Number.isFinite(weightValue) &&
-    weightValue >= 0 &&
-    Number.isInteger(repsValue) &&
-    repsValue >= 1
+  // 빈 칸은 Number('')가 0이 되므로 따로 막는다
+  const canRecord = weight !== '' && reps !== '' && isValidSetValues(weightValue, repsValue)
 
   async function submit(e: FormEvent) {
     e.preventDefault()

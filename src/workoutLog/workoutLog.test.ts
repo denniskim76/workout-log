@@ -1,6 +1,6 @@
 // WorkoutLog 공개 인터페이스로 세트 기록과 세션 조회 동작을 검증하는 테스트
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createWorkoutLog, DuplicateExerciseNameError, type WorkoutLog } from '.'
+import { createWorkoutLog, DuplicateExerciseNameError, isValidSetValues, type WorkoutLog } from '.'
 
 let log: WorkoutLog
 
@@ -335,6 +335,15 @@ describe('입력 검증', () => {
 
     const sets = (await log.getSession('2026-10-07'))?.exercises[0].sets
     expect(sets?.map((s) => `${s.weight}x${s.reps}`)).toEqual(['0x1', '1.25x5'])
+  })
+
+  it('화면이 기록 버튼을 켤지 미리 판단할 수 있다', () => {
+    expect(isValidSetValues(0, 1)).toBe(true)
+    expect(isValidSetValues(1.25, 5)).toBe(true)
+    expect(isValidSetValues(-2.5, 10)).toBe(false)
+    expect(isValidSetValues(NaN, 10)).toBe(false)
+    expect(isValidSetValues(60, 0)).toBe(false)
+    expect(isValidSetValues(60, 8.5)).toBe(false)
   })
 })
 
