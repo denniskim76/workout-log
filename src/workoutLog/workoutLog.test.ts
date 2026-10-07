@@ -153,3 +153,30 @@ describe('미리 채우기', () => {
     expect(await log.getPrefill(bench.id, '2026-10-07')).toBeNull()
   })
 })
+
+describe('입력 검증', () => {
+  it.each([
+    ['무게가 음수', -2.5, 10],
+    ['무게가 NaN', NaN, 10],
+    ['무게가 무한대', Infinity, 10],
+    ['횟수가 0', 60, 0],
+    ['횟수가 소수', 60, 8.5],
+    ['횟수가 NaN', 60, NaN],
+  ])('%s이면 세트 기록을 거부하고 저장하지 않는다', async (_, weight, reps) => {
+    const bench = await log.addExercise('벤치프레스')
+
+    await expect(
+      log.recordSet({ exerciseId: bench.id, weight, reps, recordedAt: at(2026, 10, 7, 18, 0) }),
+    ).rejects.toThrow()
+    expect(await log.getSession('2026-10-07')).toBeNull()
+  })
+
+  it('무게 0과 소수 무게, 횟수 1은 기록할 수 있다', async () => {
+    const pullup = await log.addExercise('턱걸이')
+    await log.recordSet({ exerciseId: pullup.id, weight: 0, reps: 1, recordedAt: at(2026, 10, 7, 18, 0) })
+    await log.recordSet({ exerciseId: pullup.id, weight: 1.25, reps: 5, recordedAt: at(2026, 10, 7, 18, 5) })
+
+    const sets = (await log.getSession('2026-10-07'))?.exercises[0].sets
+    expect(sets?.map((s) => `${s.weight}x${s.reps}`)).toEqual(['0x1', '1.25x5'])
+  })
+})
