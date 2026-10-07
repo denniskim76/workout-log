@@ -1,6 +1,6 @@
 // WorkoutLog 공개 인터페이스로 세트 기록과 세션 조회 동작을 검증하는 테스트
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createWorkoutLog, DuplicateExerciseNameError, recordingTimeFor, type WorkoutLog } from '.'
+import { createWorkoutLog, DuplicateExerciseNameError, type WorkoutLog } from '.'
 
 let log: WorkoutLog
 
@@ -396,13 +396,18 @@ describe('세트 수정이 지난 기록과 미리 채우기에 반영됨', () =
 })
 
 describe('과거 운동일 기록', () => {
+  it('오늘 운동일의 기록 시각은 지금이다', async () => {
+    const now = at(2026, 10, 7, 20, 0)
+    expect(await log.nextRecordingTime('2026-10-07', now)).toEqual(now)
+  })
+
   it('세션이 없던 운동일에 기록하면 세션이 생기고 목록의 올바른 위치에 나타난다', async () => {
     const bench = await log.addExercise('벤치프레스')
     await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 3, 19, 0) })
     await log.recordSet({ exerciseId: bench.id, weight: 62.5, reps: 8, recordedAt: at(2026, 10, 7, 19, 0) })
 
     const now = at(2026, 10, 7, 20, 0)
-    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 9, recordedAt: recordingTimeFor('2026-10-05', now) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 9, recordedAt: await log.nextRecordingTime('2026-10-05', now) })
 
     expect((await log.listSessions()).map((s) => s.trainingDay)).toEqual(['2026-10-07', '2026-10-05', '2026-10-03'])
     expect((await log.getSession('2026-10-05'))?.exercises[0].sets.map((s) => s.reps)).toEqual([9])
@@ -412,19 +417,38 @@ describe('과거 운동일 기록', () => {
     const bench = await log.addExercise('벤치프레스')
     // 새벽 2시는 아직 10/6 운동일이다
     for (const [reps, now] of [[10, at(2026, 10, 7, 2, 0)], [8, at(2026, 10, 7, 3, 59)]] as const) {
-      await log.recordSet({ exerciseId: bench.id, weight: 60, reps, recordedAt: recordingTimeFor('2026-10-04', now) })
+      await log.recordSet({ exerciseId: bench.id, weight: 60, reps, recordedAt: await log.nextRecordingTime('2026-10-04', now) })
     }
 
     expect((await log.listSessions()).map((s) => s.trainingDay)).toEqual(['2026-10-04'])
     expect((await log.getSession('2026-10-04'))?.exercises[0].sets.map((s) => s.reps)).toEqual([10, 8])
   })
 
-  it('이미 있는 과거 세션에 세트를 추가할 수 있다', async () => {
+  it('이미 있는 과거 세션에 추가한 세트는 그날의 기존 세트 뒤에 온다', async () => {
     const bench = await log.addExercise('벤치프레스')
-    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 5, 7, 0) })
+    const squat = await log.addExercise('스쿼트')
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 5, 19, 0) })
 
-    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: recordingTimeFor('2026-10-05', at(2026, 10, 7, 9, 0)) })
+    // 지금 시각(09:00)을 그날로 옮기면 기존 세트(19:00)보다 앞서지만, 추가한 세트는 뒤에 와야 한다
+    const now = at(2026, 10, 7, 9, 0)
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: await log.nextRecordingTime('2026-10-05', now) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: await log.nextRecordingTime('2026-10-05', now) })
 
+    const session = await log.getSession('2026-10-05')
+    expect(session?.exercises.map((e) => [e.exercise.name, e.sets.map((s) => s.reps)])).toEqual([
+      ['벤치프레스', [10, 8]],
+      ['스쿼트', [5]],
+    ])
+  })
+
+  it('그 운동일이 끝나기 직전의 세트가 있어도 추가한 세트는 그 운동일 안에서 뒤에 온다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    // 10/6 03:59:59는 10/5 운동일의 마지막 순간이다
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: new Date(2026, 9, 6, 3, 59, 59) })
+
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: await log.nextRecordingTime('2026-10-05', at(2026, 10, 7, 9, 0)) })
+
+    expect((await log.listSessions()).map((s) => s.trainingDay)).toEqual(['2026-10-05'])
     expect((await log.getSession('2026-10-05'))?.exercises[0].sets.map((s) => s.reps)).toEqual([10, 8])
   })
 
@@ -437,9 +461,9 @@ describe('과거 운동일 기록', () => {
     expect(await log.getPrefill(bench.id, '2026-10-04')).toEqual({ weight: 55, reps: 10 })
   })
 
-  it('미래 운동일의 기록 시각은 만들 수 없다', () => {
-    expect(() => recordingTimeFor('2026-10-08', at(2026, 10, 7, 20, 0))).toThrow()
+  it('미래 운동일에는 기록 시각을 만들 수 없다', async () => {
+    await expect(log.nextRecordingTime('2026-10-08', at(2026, 10, 7, 20, 0))).rejects.toThrow()
     // 새벽 2시에는 달력 날짜(10/7)도 아직 미래 운동일이다
-    expect(() => recordingTimeFor('2026-10-07', at(2026, 10, 7, 2, 0))).toThrow()
+    await expect(log.nextRecordingTime('2026-10-07', at(2026, 10, 7, 2, 0))).rejects.toThrow()
   })
 })

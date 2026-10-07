@@ -3,8 +3,6 @@ import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
 import {
-  recordingTimeFor,
-  trainingDayOf,
   type Exercise,
   type PreviousRecord,
   type TrainingDay,
@@ -32,7 +30,7 @@ export function RecordScreen({
   trainingDay?: TrainingDay
   navigate: (route: Route) => void
 }) {
-  const trainingDay = day ?? trainingDayOf(new Date())
+  const trainingDay = day ?? log.trainingDayOf(new Date())
   const [sets, setSets] = useState<WorkoutSet[]>([])
   const [previous, setPrevious] = useState<PreviousRecord | null | undefined>(undefined)
   const [weight, setWeight] = useState('')
@@ -72,7 +70,7 @@ export function RecordScreen({
       exerciseId: exercise.id,
       weight: weightValue,
       reps: repsValue,
-      recordedAt: recordingTimeFor(trainingDay),
+      recordedAt: await log.nextRecordingTime(trainingDay, new Date()),
     })
     // 다음 세트 입력 칸은 방금 기록한 값(미리 채우기 규칙의 당일 최근 세트)
     setWeight(String(weightValue))

@@ -1,12 +1,11 @@
 // 백업 JSON을 공유 시트(Web Share API)나 파일 다운로드로 내보내고 백업 시각을 기록하는 화면용 도우미
 import { log } from './log'
-import { trainingDayOf } from './workoutLog'
 
 /** 내보내기를 마쳤으면 true, 사용자가 공유를 취소했으면 false. */
 export async function shareBackup(): Promise<boolean> {
   const now = new Date()
   const json = await log.exportBackup(now)
-  const file = new File([json], `workout-log-backup-${trainingDayOf(now)}.json`, {
+  const file = new File([json], `workout-log-backup-${log.trainingDayOf(now)}.json`, {
     type: 'application/json',
   })
 

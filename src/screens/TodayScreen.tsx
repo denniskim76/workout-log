@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
-import { trainingDayOf, type Session } from '../workoutLog'
+import type { Session } from '../workoutLog'
 import { BackupBanner } from './BackupBanner'
 import { EditableSetList } from './EditableSetList'
 
@@ -10,7 +10,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
   const [session, setSession] = useState<Session | null | undefined>(undefined)
 
   async function reload() {
-    setSession(await log.getSession(trainingDayOf(new Date())))
+    setSession(await log.getSession(log.trainingDayOf(new Date())))
   }
 
   useEffect(() => {

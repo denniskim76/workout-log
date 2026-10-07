@@ -2,13 +2,13 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import type { Route } from '../App'
 import { log } from '../log'
-import { trainingDayOf, type Session } from '../workoutLog'
+import type { Session } from '../workoutLog'
 import { formatTrainingDay } from './format'
 
 export function HistoryScreen({ navigate }: { navigate: (route: Route) => void }) {
   const [sessions, setSessions] = useState<Session[] | undefined>(undefined)
   // 운동일은 새벽 4시에 바뀌므로 자정~4시에는 달력 날짜가 아직 미래 운동일이다
-  const today = trainingDayOf(new Date())
+  const today = log.trainingDayOf(new Date())
   const [day, setDay] = useState(today)
   // max 속성은 직접 입력을 막지 못하므로 미래 날짜를 한 번 더 거른다('YYYY-MM-DD'는 문자열 비교로 순서가 맞다)
   const canOpen = day !== '' && day <= today
