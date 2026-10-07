@@ -1,0 +1,65 @@
+/* 모바일 세로 화면 기준의 전역 스타일 */
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+button,
+input {
+  font: inherit;
+  font-size: 18px;
+  min-height: 48px;
+}
+
+.primary {
+  width: 100%;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 12px;
+}
+
+.back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.empty {
+  color: gray;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.set-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sets {
+  font-size: 18px;
+}
