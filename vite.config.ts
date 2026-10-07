@@ -26,6 +26,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    watch: { ignored: ['**/.claude/**'] },
+  },
   test: {
     setupFiles: ['fake-indexeddb/auto'],
     exclude: [...configDefaults.exclude, '.claude/**'],
