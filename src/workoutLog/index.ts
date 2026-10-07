@@ -5,6 +5,7 @@ import { sessionOps } from './sessions'
 import { setOps } from './sets'
 
 export type * from './types'
+export { DuplicateExerciseNameError } from './exercises'
 export { trainingDayOf } from './trainingDay'
 
 export function createWorkoutLog(dbName = 'workout-log') {
