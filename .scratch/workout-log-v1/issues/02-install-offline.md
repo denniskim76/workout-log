@@ -9,7 +9,7 @@
 - [x] 사용자가 GitHub 공개 저장소를 만들고 remote를 연결하는 절차가 안내된다(필요하면 `/wizard`)
 - [x] main 브랜치에 push하면 GitHub Actions로 빌드되어 GitHub Pages에 배포된다
 - [x] Pages 하위 경로(base path)에서 앱과 모든 자산이 정상적으로 로드된다
-- [ ] 웹 앱 매니페스트(이름, 아이콘, 세로 화면, 독립 실행 모드)가 있어 iPhone 홈 화면에 추가하면 주소창 없이 실행된다
+- [x] 웹 앱 매니페스트(이름, 아이콘, 세로 화면, 독립 실행 모드)가 있어 iPhone 홈 화면에 추가하면 주소창 없이 실행된다
 - [ ] 서비스 워커가 앱 파일을 캐시해, 비행기 모드에서도 앱이 열리고 세트를 기록할 수 있다
 - [ ] 새 버전이 감지되면 자동 교체하지 않고 새로고침 안내를 띄우며, 누르면 새 버전으로 바뀐다
 - [x] 테스트와 빌드가 통과한다
@@ -25,3 +25,4 @@
 - 배포 워크플로(`.github/workflows/deploy.yml`)는 `main` push 또는 수동 실행 시 `npm ci` → `npm test` → `npm run build` → `actions/deploy-pages` 순서로 동작. 사용자 설정 절차는 `README.md`에 정리함(현재 로컬 브랜치가 `master`라서 `main`으로 이름 바꾸는 단계 포함). 단계가 짧아서 `/wizard`는 쓰지 않음.
 
 - 2026-10-07: 첫 push 후 GitHub Actions 배포 성공. https://denniskim76.github.io/workout-log/ 에서 index, 매니페스트, sw.js, 아이콘이 200으로 응답함. 나머지 3개는 iPhone 확인 대기.
+- 2026-10-07: 사용자가 iPhone Safari에서 홈 화면에 추가했고, 주소창 없이 실행됨을 확인함.
