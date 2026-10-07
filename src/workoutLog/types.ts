@@ -38,3 +38,8 @@ export interface Session {
   trainingDay: TrainingDay
   exercises: SessionExercise[]
 }
+
+/** 오늘 화면 백업 배너에 필요한 정보. daysSinceBackup이 null이면 백업한 적이 없다. */
+export interface BackupReminder {
+  daysSinceBackup: number | null
+}

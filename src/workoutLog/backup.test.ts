@@ -20,6 +20,41 @@ async function seed(target: WorkoutLog) {
   await target.recordSet({ exerciseId: squat.id, weight: 105, reps: 3, recordedAt: at(2026, 10, 7, 19, 0) })
 }
 
+describe('백업 배너', () => {
+  const now = at(2026, 10, 20, 9, 0)
+
+  it('세트가 하나도 없으면 배너를 띄우지 않는다', async () => {
+    await log.addExercise('벤치프레스')
+    expect(await log.getBackupReminder(now)).toBeNull()
+  })
+
+  it('세트가 있고 백업한 적이 없으면 백업을 권유한다', async () => {
+    await seed(log)
+    expect(await log.getBackupReminder(now)).toEqual({ daysSinceBackup: null })
+  })
+
+  it('마지막 백업이 정확히 7일 전이면 배너를 띄우지 않는다', async () => {
+    await seed(log)
+    await log.markBackedUp(at(2026, 10, 13, 9, 0))
+    expect(await log.getBackupReminder(now)).toBeNull()
+  })
+
+  it('마지막 백업이 7일을 넘으면 지난 일수와 함께 배너를 띄운다', async () => {
+    await seed(log)
+    await log.markBackedUp(at(2026, 10, 13, 8, 59))
+    expect(await log.getBackupReminder(now)).toEqual({ daysSinceBackup: 7 })
+
+    await log.markBackedUp(at(2026, 10, 10, 9, 0))
+    expect(await log.getBackupReminder(now)).toEqual({ daysSinceBackup: 10 })
+  })
+
+  it('방금 백업했으면 배너를 띄우지 않는다', async () => {
+    await seed(log)
+    await log.markBackedUp(now)
+    expect(await log.getBackupReminder(now)).toBeNull()
+  })
+})
+
 describe('잘못된 백업 파일', () => {
   const valid = {
     version: 1,

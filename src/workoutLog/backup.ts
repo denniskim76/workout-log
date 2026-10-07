@@ -1,8 +1,11 @@
 // 전체 데이터 JSON 내보내기/가져오기와 백업 배너 판단을 담당하는 WorkoutLog 동작
 import type { WorkoutDb } from './db'
-import type { Exercise, WorkoutSet } from './types'
+import type { BackupReminder, Exercise, WorkoutSet } from './types'
 
 const FORMAT_VERSION = 1
+const LAST_BACKUP_KEY = 'lastBackupAt'
+const REMIND_AFTER_DAYS = 7
+const DAY_MS = 24 * 60 * 60 * 1000
 
 interface BackupFile {
   version: number
@@ -61,6 +64,21 @@ export function backupOps(db: WorkoutDb) {
         sets: await db.sets.toArray(),
       }
       return JSON.stringify(file)
+    },
+
+    /** 백업을 마친 시각을 기기에 저장한다. */
+    async markBackedUp(now: Date): Promise<void> {
+      await db.meta.put({ key: LAST_BACKUP_KEY, value: now.getTime() })
+    },
+
+    /** 세트가 있고, 백업한 적이 없거나 마지막 백업이 7일을 넘었으면 배너 정보를, 아니면 null. */
+    async getBackupReminder(now: Date): Promise<BackupReminder | null> {
+      if ((await db.sets.count()) === 0) return null
+      const last = (await db.meta.get(LAST_BACKUP_KEY))?.value as number | undefined
+      if (last === undefined) return { daysSinceBackup: null }
+      const elapsed = now.getTime() - last
+      if (elapsed <= REMIND_AFTER_DAYS * DAY_MS) return null
+      return { daysSinceBackup: Math.floor(elapsed / DAY_MS) }
     },
 
     /** 백업 JSON으로 모든 종목과 세트를 교체한다. */
