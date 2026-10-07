@@ -1,6 +1,6 @@
 // WorkoutLog 공개 인터페이스로 세트 기록과 세션 조회 동작을 검증하는 테스트
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createWorkoutLog, type WorkoutLog } from '.'
+import { createWorkoutLog, DuplicateExerciseNameError, type WorkoutLog } from '.'
 
 let log: WorkoutLog
 
@@ -162,5 +162,45 @@ describe('세트 수정과 삭제', () => {
       log.recordSet({ exerciseId: bench.id, weight: 60, reps: 0, recordedAt: at(2026, 10, 7, 18, 0) }),
     ).rejects.toThrow()
     expect(await log.getSession('2026-10-07')).toBeNull()
+  })
+})
+
+describe('종목 목록', () => {
+  const names = async (query?: string) => (await log.listExercises(query)).map((e) => e.name)
+
+  it('종목별 가장 최근 세트의 기록 시각 순으로 정렬되고 세트가 없는 종목은 뒤에 온다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    const squat = await log.addExercise('스쿼트')
+    await log.addExercise('데드리프트')
+    const row = await log.addExercise('바벨로우')
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 5, 18, 0) })
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 6, 18, 0) })
+    await log.recordSet({ exerciseId: row.id, weight: 50, reps: 12, recordedAt: at(2026, 10, 7, 18, 0) })
+    // 기록 순서가 아니라 기록 시각 기준이다
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 8, recordedAt: at(2026, 10, 4, 18, 0) })
+    await log.recordSet({ exerciseId: squat.id, weight: 100, reps: 5, recordedAt: at(2026, 10, 7, 19, 0) })
+
+    expect(await names()).toEqual(['스쿼트', '바벨로우', '벤치프레스', '데드리프트'])
+  })
+
+  it('이름 검색은 부분 일치이고 대소문자와 앞뒤 공백을 무시하며 최근 사용 순을 유지한다', async () => {
+    const bench = await log.addExercise('벤치프레스')
+    await log.addExercise('인클라인 벤치프레스')
+    await log.addExercise('Lat Pulldown')
+    const incline = (await log.listExercises()).find((e) => e.name === '인클라인 벤치프레스')!
+    await log.recordSet({ exerciseId: bench.id, weight: 60, reps: 10, recordedAt: at(2026, 10, 6, 18, 0) })
+    await log.recordSet({ exerciseId: incline.id, weight: 40, reps: 10, recordedAt: at(2026, 10, 7, 18, 0) })
+
+    expect(await names(' 벤치 ')).toEqual(['인클라인 벤치프레스', '벤치프레스'])
+    expect(await names('  pULL')).toEqual(['Lat Pulldown'])
+    expect(await names('스쿼트')).toEqual([])
+    expect(await names('   ')).toHaveLength(3)
+  })
+
+  it('앞뒤 공백을 무시하고 같은 이름의 종목은 추가할 수 없다', async () => {
+    await log.addExercise('벤치프레스')
+
+    await expect(log.addExercise('  벤치프레스 ')).rejects.toBeInstanceOf(DuplicateExerciseNameError)
+    expect(await names()).toEqual(['벤치프레스'])
   })
 })

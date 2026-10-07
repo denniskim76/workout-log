@@ -28,7 +28,7 @@ export function TodayScreen({ navigate }: { navigate: (route: Route) => void }) 
           <EditableSetList sets={sets} onChange={reload} />
         </section>
       ))}
-      <button className="primary" onClick={() => navigate({ name: 'addExercise' })}>
+      <button className="primary" onClick={() => navigate({ name: 'pickExercise' })}>
         종목 추가
       </button>
     </main>
