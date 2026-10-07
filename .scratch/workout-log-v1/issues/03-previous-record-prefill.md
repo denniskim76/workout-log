@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 - [x] WorkoutLog가 지난 기록(종목, 운동일)을 제공한다: 기준 운동일보다 이전 세션 중 그 종목이 있는 가장 최근 세션의 그 종목 세트 전부와 그 운동일
 - [x] WorkoutLog가 미리 채우기 값(종목, 운동일)을 제공한다: 당일 그 종목의 가장 최근 세트 → 지난 기록의 첫 세트 → 빈 값 순
